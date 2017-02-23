@@ -13,6 +13,7 @@ class $Scope {
         this.childScopes = [];
         this._canWatch = false;
         this._name = name;
+        this._destroyed = false;
         this.eventManager = new $ScopeEventManager(this);
 
         this.store = observable(defaultStore || {}, this._getObservableOption());
@@ -20,7 +21,9 @@ class $Scope {
     }
 
     $apply() {
-        this.$fire($Scope.NEED_RENDER);
+        if (!this._destroyed) {
+            this.$fire($Scope.NEED_RENDER);
+        }
     }
 
     $watch(modal: String, listener: Function): void {
@@ -50,6 +53,8 @@ class $Scope {
     $destroy(): void {
         this.parentScope._removeChildScope(this);
         this.eventManager.destroy();
+
+        this._destroyed = true;
     }
 
     $startWatch(): void {
