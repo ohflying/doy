@@ -1,0 +1,27 @@
+{
+  "name": "doy",
+  "version": "0.1.0",
+  "description": "针对于React-native的小型MVVM框架",
+  "main": "Doy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ohflying/doy.git"
+  },
+  "keywords": [
+    "react",
+    "react-native",
+    "doy"
+  ],
+  "author": "ohflying",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ohflying/doy/issues"
+  },
+  "homepage": "https://github.com/ohflying/doy#readme",
+  "dependencies": {
+    "react-native": "^0.41.2"
+  }
+}
