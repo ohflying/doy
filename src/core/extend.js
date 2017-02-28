@@ -8,6 +8,7 @@ import { AppState } from 'react-native';
 import $Scope, { $rootScope } from './$Scope';
 import atom from './atom';
 import { isObservable } from '../types/ObservableObject';
+import shallowEquals from '../utils/shallowEquals';
 
 const VIEW_LIFECYCLE_EVENT = {
     LOADED: 'view.loaded',
@@ -36,7 +37,7 @@ function copyProperty(obj: Object, maxDeepCount: Number = 2, curDeepIndex: Numbe
     return newObj;
 }
 
-export default function extend(options: Object): React.Component {
+export default function extend(options: Object = { template: null, inheritor: null}): React.Component {
     class _DoyView extends React.Component {
         $scope: $Scope = null;
 
@@ -67,7 +68,13 @@ export default function extend(options: Object): React.Component {
         }
 
         componentWillReceiveProps(nextProps: Object) {
-            this.$scope.store.props = atom(copyProperty(nextProps));
+            if (!shallowEquals(this.$scope.store.props, nextProps)) {
+                this.$scope.store.props = atom(copyProperty(nextProps));
+            }
+        }
+
+        shouldComponentUpdate(nextProps, nextState) {
+            return this.props !== nextProps || this.state !== nextState;
         }
 
         getChildContext() {
