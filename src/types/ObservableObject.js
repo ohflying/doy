@@ -13,11 +13,11 @@ export default class ObservableObject {
         this.$$targetName = targetName;
         this.$$name = transformName(parent.$$name, targetName);
         this.$$defaultTarget = defaultTarget;
-        this.$$ignoreProps = [];
-        this._cloneToSelf(defaultTarget);
+        this.$$value = null;
+        this.$$cloneToSelf(defaultTarget);
     }
 
-    _cloneToSelf(defaultTarget: Object) {
+    $$cloneToSelf(defaultTarget: Object) {
         if (!defaultTarget) {
             return;
         }
@@ -29,7 +29,16 @@ export default class ObservableObject {
         });
     }
 
-    isAtom() {
+    $$notify(result) {
+        this.$$value = this.$$value;
+        return result;
+    }
+
+    $$getRealValue() {
+        return this.$$defaultTarget === this.$$value ? this.$$value : this;
+    }
+
+    $$isAtom() {
         return this.$$atom;
     }
 }

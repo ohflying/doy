@@ -10,14 +10,37 @@ export default class ObservableArray extends ObservableObject {
         super(defaultTarget, targetName, parent);
 
         this.$$atom = true;
-        this.$$ignoreProps = ['length'];
+        this.$$value = this.$$defaultTarget;
     }
 
-    _cloneToSelf(defaultTarget: Object) {
-        super._cloneToSelf(defaultTarget);
+    $$cloneToSelf(defaultTarget: Object) {
+    }
 
-        ['length'].forEach((key) => {
-            this[key] = defaultTarget[key];
-        });
+    pop() {
+        return this.$$notify(this.$$value.pop());
+    }
+
+    push(items) {
+        return this.$$notify(this.$$value.push(items));
+    }
+
+    reverse() {
+        return this.$$notify(this.$$value.reverse());
+    }
+
+    shift() {
+        return this.$$notify(this.$$value.shift());
+    }
+
+    splice(start, deleteCount, items) {
+        if (items) {
+            return this.$$notify(this.$$value.splice(start, deleteCount, items));
+        } else {
+            return this.$$notify(this.$$value.splice(start, deleteCount));
+        }
+    }
+
+    unshift(items) {
+        return this.$$notify(this.$$value.unshift(items))
     }
 }

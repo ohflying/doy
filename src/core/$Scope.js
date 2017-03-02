@@ -4,8 +4,8 @@
  **/
 
 import $ScopeEventManager from './$ScopeEventManager';
-
 import observable from './observable';
+import { Reporter } from './why';
 
 class $Scope {
     static NEED_RENDER = '_$$needRender';
@@ -71,6 +71,7 @@ class $Scope {
         return {
             changed: (name) => {
                 let eventName = `\$\$${name}`;
+                Reporter.print(`$Scope[${this._name}].Store[${eventName}] has changed!`);
                 if (_self.eventManager.isExisted(eventName)) {
                     _self.$fire(eventName);
                 }
@@ -78,6 +79,7 @@ class $Scope {
             watch: (name) => {
                 let eventName = `\$\$${name}`;
                 if (_self._canWatch && !watchNames.includes(eventName)) {
+                    Reporter.print(`$Scope[${this._name}].Store[${eventName}] has watched!`);
                     _self.eventManager.addEventListener(eventName, () => {
                         _self.$apply();
                     });

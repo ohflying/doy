@@ -8,7 +8,8 @@ import { AppState } from 'react-native';
 import $Scope, { $rootScope } from './$Scope';
 import atom from './atom';
 import { isObservable } from '../types/ObservableObject';
-import shallowEquals from '../utils/shallowEquals';
+import { Reporter } from './why';
+import deepEquals from '../utils/deepEquals';
 
 const VIEW_LIFECYCLE_EVENT = {
     LOADED: 'view.loaded',
@@ -40,10 +41,9 @@ function copyProperty(obj: Object, maxDeepCount: Number = 2, curDeepIndex: Numbe
 export default function extend(options: Object = { template: null, inheritor: null}): React.Component {
     class _DoyView extends React.Component {
         $scope: $Scope = null;
-
         constructor(props: Object, context: Object) {
             super(props, context);
-
+            this.displayName = options.name;
             this.$scope = (this.context.$curScope || $rootScope).$new({ props: atom(copyProperty(this.props))}, options.name);
             if (options.inheritor) {
                 options.inheritor(this.$scope, this.$scope.store);
@@ -68,13 +68,13 @@ export default function extend(options: Object = { template: null, inheritor: nu
         }
 
         componentWillReceiveProps(nextProps: Object) {
-            if (!shallowEquals(this.$scope.store.props, nextProps)) {
+            if (!deepEquals(this.$scope.store.props, nextProps)) {
                 this.$scope.store.props = atom(copyProperty(nextProps));
             }
         }
 
-        shouldComponentUpdate(nextProps, nextState) {
-            return this.props !== nextProps || this.state !== nextState;
+        shouldComponentUpdate() {
+            return false;
         }
 
         getChildContext() {
@@ -83,6 +83,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
 
         _bindEvent() {
             this.$scope.$on($Scope.NEED_RENDER, () => {
+                Reporter.print(`View[${this.displayName}] need render!`);
                 if (!this.unmount) {
                     this.forceUpdate();
                 }
@@ -103,6 +104,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
         }
 
         render() {
+            console.log('render ' + this.displayName);
             this.$scope.$startWatch();
             let template = options.template(this.$scope, this.$scope.store);
             this.$scope.$endWatch();

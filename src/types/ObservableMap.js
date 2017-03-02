@@ -6,17 +6,25 @@
 import ObservableObject from './ObservableObject';
 
 export default class ObservableMap extends ObservableObject {
-    constructor(defaultTarget: Object, targetName: String, parent: ObservableObject) {
+    constructor(defaultTarget: Map, targetName: String, parent: ObservableObject) {
         super(defaultTarget, targetName, parent);
 
         this.$$atom = true;
+        this.$$value = this.$$defaultTarget;
     }
 
-    _cloneToSelf(defaultTarget) {
-        super._cloneToSelf(defaultTarget);
+    $$cloneToSelf(defaultTarget) {
+    }
 
-        for(let [key, value] of defaultTarget.entries()) {
-            this.set(key, value);
-        }
+    clear() {
+        return this.$$notify(this.$$value.clear());
+    }
+
+    delete(key) {
+        return this.$$notify(this.$$value.delete(key));
+    }
+
+    set(key,value) {
+        return this.$$notify(this.$$value.set(key, value));
     }
 }
