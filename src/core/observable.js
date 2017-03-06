@@ -79,6 +79,12 @@ export default function observable(defaultTarget: object, options = {}, targetNa
         },
         getOwnPropertyDescriptor: (target, propertyKey) => {
             return Reflect.getOwnPropertyDescriptor(target.$$getRealValue(), propertyKey);
+        },
+        defineProperty: (target, propertyKey, attributes) => {
+            return Reflect.defineProperty(target.$$getRealValue(), propertyKey, attributes);
+        },
+        getPrototypeOf: (target) => {
+            return Reflect.getPrototypeOf(target.$$defaultTarget);
         }
     });
 
