@@ -5,18 +5,30 @@
 
 import { isObservable } from '../types/ObservableObject';
 import ObservableFactory from '../types/ObservableFactory';
-import deepEquals from '../utils/deepEquals';
+import shallowEqual from 'fbjs/lib/shallowEqual';
 import transformName from '../utils/transformName';
 import getOwnKeys from '../utils/getOwnKeys';
 
 function isPrivateValue(propertyKey) {
     return propertyKey === '$$value';
 }
+
 function needObservable(obj) {
     return obj != null && typeof obj === 'object' && !isObservable(obj);
 }
 
-export default function observable(defaultTarget: object, options = {}, targetName: string = "", parentTarget: object = {}) {
+function recursionUpdate(target, options) {
+    if (!target) {
+        return;
+    }
+
+    if (target.$$parent && target.$$name) {
+        target.$$parent[target.$$name] = observable(Object.assign(new target.constructor, target), options, target.$$name, target.$$parent);
+        recursionUpdate(target.$$parent);
+    }
+}
+
+function observable(defaultTarget: object, options = {}, targetName: string = "", parentTarget: object = {}) {
     let target = ObservableFactory.create(defaultTarget, targetName, parentTarget);
     if (target == null) {
         return defaultTarget;
@@ -26,17 +38,19 @@ export default function observable(defaultTarget: object, options = {}, targetNa
         set: (target, propertyKey, value, receiver) => {
             let oldValue = Reflect.get(target, propertyKey);
 
-            if (!isPrivateValue(propertyKey) && deepEquals(oldValue, value)) {
+            if (!isPrivateValue(propertyKey) && shallowEqual(oldValue, value)) {
                 return true;
             }
 
-            let result = Reflect.set(target, propertyKey, value, receiver);
+            target[propertyKey] = value;
+
+            recursionUpdate(target, options);
 
             if (options.changed) {
                 options.changed(transformName(target.$$name, target.$$isAtom() || isPrivateValue(propertyKey) ? "" : propertyKey));
             }
 
-            return result;
+            return true;
         },
         get: (target, propertyKey, receiver) => {
             if (typeof propertyKey === 'string' && propertyKey.startsWith('$$')) {
@@ -44,20 +58,17 @@ export default function observable(defaultTarget: object, options = {}, targetNa
             }
 
             let has = Reflect.has(target, propertyKey, receiver);
-            let hasInOld = Reflect.has(target.$$defaultTarget, propertyKey, receiver);
 
-            if (!has && hasInOld) {
-                let property =  Reflect.get(target.$$defaultTarget, propertyKey, receiver);
-                return typeof property === 'function' ? property.bind(target.$$defaultTarget) : property;
+            if (!has) {
+                if (Reflect.has(target.$$defaultTarget, propertyKey, receiver)) {
+                    let property = Reflect.get(target.$$defaultTarget, propertyKey, receiver);
+                    return typeof property === 'function' ? property.bind(target.$$defaultTarget) : property;
+                }
             }
 
             let value = Reflect.get(target, propertyKey, receiver);
-            if (typeof value === 'function') {
+            if (typeof value === 'function' || typeof propertyKey !== 'string' || target.$$isAtom()) {
                 return value;
-            }
-
-            if (typeof propertyKey !== 'string' || target.$$isAtom()) {
-                return Reflect.get(target, propertyKey, receiver);
             }
 
             if (needObservable(value)) {
@@ -90,3 +101,5 @@ export default function observable(defaultTarget: object, options = {}, targetNa
 
     return proxy;
 }
+
+export default observable;

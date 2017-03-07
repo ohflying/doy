@@ -4,7 +4,7 @@
  **/
 
 import ObservableArray from './ObservableArray';
-import ObservableObject from './ObservableObject';
+import ObservableObject, {isObservable} from './ObservableObject';
 import ObservableMap from './ObservableMap';
 import ObservableSet from './ObservableSet';
 
@@ -26,6 +26,13 @@ function isES6Set(obj) {
 
 export default class ObservableFactory {
     static create(defaultTarget: Object, targetName: String = "", parentTarget: ObservableObject = null) {
+        if (isObservable(defaultTarget)) {
+            return Object.assign(defaultTarget, {
+                $$targetName: targetName,
+                $$parent: parentTarget
+            })
+        }
+
         if (isArray(defaultTarget)) {
             return new ObservableArray(defaultTarget, targetName, parentTarget)
         }

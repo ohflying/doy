@@ -9,11 +9,18 @@ export default function deepEquals(first, second, maxDeepCount = 4, curDeepIndex
         return shallowEquals(first, second);
     }
 
-    return Object.keys(first).every((key) => {
+    let firstKeys = Object.keys(first);
+    let secondKeys = Object.keys(second);
+
+    if (firstKeys.length != secondKeys.length) {
+        return false;
+    }
+
+    return firstKeys.every((key) => {
         if (maxDeepCount > curDeepIndex) {
-            return deepEquals(first[key], second[key], maxDeepCount, ++curDeepIndex);
+            return deepEquals(first[key], second[key], maxDeepCount, curDeepIndex + 1);
         } else {
-            return shallowEquals(first, second[key]);
+            return shallowEquals(first[key], second[key]);
         }
     });
 }

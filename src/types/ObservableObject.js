@@ -11,7 +11,7 @@ export default class ObservableObject {
         this.$$atom = (defaultTarget || {}).$$atom;
         this.$$parent = parent;
         this.$$targetName = targetName;
-        this.$$name = transformName(parent.$$name, targetName);
+        this.$$name = transformName(parent ? parent.$$name: "", targetName);
         this.$$defaultTarget = defaultTarget;
         this.$$value = null;
         this.$$cloneToSelf(defaultTarget);
@@ -35,11 +35,23 @@ export default class ObservableObject {
     }
 
     $$getRealValue() {
-        return this.$$defaultTarget === this.$$value ? this.$$value : this;
+        return this.$$value ? this.$$value : this;
     }
 
     $$isAtom() {
         return this.$$atom;
+    }
+
+    get [Symbol.toStringTag]() {
+        if (this.$$defaultTarget === null) {
+            return 'Null';
+        }
+
+        if (this.$$defaultTarget && this.$$defaultTarget.constructor) {
+            return this.$$defaultTarget.constructor.name;
+        }
+
+        return 'Undefined';
     }
 }
 
