@@ -16,7 +16,7 @@ class $Scope {
         this._destroyed = false;
         this.eventManager = new $ScopeEventManager(this);
 
-        this.store = observable(defaultStore || {}, this._getObservableOption());
+        this.store = observable(defaultStore || {}, this._getObservableOption(), 'store');
         this._setParentScope(parentScope);
     }
 
@@ -58,6 +58,7 @@ class $Scope {
     }
 
     $startWatch(): void {
+        this.store.$$notify();
         this._canWatch = true;
     }
 

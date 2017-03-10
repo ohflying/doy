@@ -7,6 +7,7 @@ import React from 'react';
 import { AppState } from 'react-native';
 import shallowEqual from 'fbjs/lib/shallowEqual';
 import $Scope, { $rootScope } from './$Scope';
+import {isObservable} from '../types/ObservableObject';
 import atom from './atom';
 import { Reporter } from './why';
 
@@ -28,6 +29,8 @@ export default function extend(options: Object = { template: null, inheritor: nu
                 options.inheritor(this.$scope, this.$scope.store);
             }
 
+            Reporter.print(`_DoyView[${this.displayName}]`);
+
             this._bindEvent();
         }
 
@@ -47,6 +50,8 @@ export default function extend(options: Object = { template: null, inheritor: nu
         }
 
         componentWillReceiveProps(nextProps: Object) {
+            Reporter.print(`componentWillReceiveProps[${this.displayName}] ${!shallowEqual(this.props, nextProps)} `);
+
             if (!shallowEqual(this.props, nextProps)) {
                 this.$scope.store.props = Object.assign(atom({}), nextProps);
             }

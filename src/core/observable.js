@@ -3,103 +3,95 @@
  * Date  : 17/2/17
  **/
 
-import { isObservable } from '../types/ObservableObject';
+import { isObservable, isAtom } from '../types/ObservableObject';
 import ObservableFactory from '../types/ObservableFactory';
-import shallowEqual from 'fbjs/lib/shallowEqual';
 import transformName from '../utils/transformName';
-import getOwnKeys from '../utils/getOwnKeys';
+import shallowClone from '../utils/shallowClone';
 
 function isPrivateValue(propertyKey) {
     return propertyKey === '$$value';
 }
 
 function needObservable(obj) {
-    return obj != null && typeof obj === 'object' && !isObservable(obj);
+    return obj != null && typeof obj == 'object' && !isAtom(obj);
 }
 
-function recursionUpdate(target, options) {
-    if (!target) {
-        return;
+function jointNewChild(target, options) {
+    if (!target || typeof target != 'object' || !target.$$parent || !target.$$targetName) {
+        return false;
     }
 
-    if (target.$$parent && target.$$name) {
-        target.$$parent[target.$$name] = observable(Object.assign(new target.constructor, target), options, target.$$name, target.$$parent);
-        recursionUpdate(target.$$parent);
-    }
+    let newTarget = shallowClone(target);
+    target.$$parent[target.$$targetName] = observable(newTarget, options, target.$$targetName, target.$$parent);
+
+    jointNewChild(target.$$parent, options);
+
+    return true;
 }
 
-function observable(defaultTarget: object, options = {}, targetName: string = "", parentTarget: object = {}) {
+function observable(defaultTarget: object, options = {}, targetName: string = "", parentTarget: Object) {
     let target = ObservableFactory.create(defaultTarget, targetName, parentTarget);
     if (target == null) {
         return defaultTarget;
     }
 
-    let proxy = new Proxy(target, {
-        set: (target, propertyKey, value, receiver) => {
-            let oldValue = Reflect.get(target, propertyKey);
+    let observableTarget = isObservable(defaultTarget) ? defaultTarget : target.$$patchTo(defaultTarget);
 
-            if (!isPrivateValue(propertyKey) && shallowEqual(oldValue, value)) {
-                return true;
-            }
+    const handler = (propertyKey) => {
+        let propertyValue = observableTarget[propertyKey];
+        if (!isPrivateValue(propertyKey) && needObservable(propertyValue)) {
+            observableTarget[propertyKey] = observable(propertyValue, options, propertyKey, observableTarget);
+        }
 
-            target[propertyKey] = value;
+        let descriptor = {
+            _value: observableTarget[propertyKey],
+            enumerable: !propertyKey.startsWith('$$'),
+            get: function() {
+                if (options.watch) {
+                    options.watch(transformName(observableTarget.$$name, isAtom(observableTarget) || isPrivateValue(propertyKey) ? "" : propertyKey));
+                }
 
-            recursionUpdate(target, options);
+                return descriptor._value;
+            },
+            set: function(value) {
+                let oldValue = observableTarget[propertyKey];
+                if (!isPrivateValue(propertyKey) && oldValue == value) {
+                    return true;
+                }
 
-            if (options.changed) {
-                options.changed(transformName(target.$$name, target.$$isAtom() || isPrivateValue(propertyKey) ? "" : propertyKey));
-            }
+                if (!isAtom(observableTarget)) {
+                    if (isPrivateValue(propertyKey)) { //reobserver
+                        observableTarget = observable(observableTarget, options, observableTarget.$$name, observableTarget.$$parent);
+                    } else {
+                        descriptor._value = observable(value, options, propertyKey, observableTarget);
+                    }
+                }
 
-            return true;
-        },
-        get: (target, propertyKey, receiver) => {
-            if (typeof propertyKey === 'string' && propertyKey.startsWith('$$')) {
-                return Reflect.get(target, propertyKey, receiver);
-            }
+                let fired = jointNewChild(observableTarget, options);
 
-            let has = Reflect.has(target, propertyKey, receiver);
+                //if the target parent not null, the changed event has fired in recursionUpdate function;
+                if (isPrivateValue(propertyKey) && fired) {
+                    return true;
+                }
 
-            if (!has) {
-                if (Reflect.has(target.$$defaultTarget, propertyKey, receiver)) {
-                    let property = Reflect.get(target.$$defaultTarget, propertyKey, receiver);
-                    return typeof property === 'function' ? property.bind(target.$$defaultTarget) : property;
+                if (options.changed) {
+                    options.changed(transformName(observableTarget.$$name,
+                        isAtom(observableTarget) || isPrivateValue(propertyKey) ? "" : propertyKey));
                 }
             }
+        };
 
-            let value = Reflect.get(target, propertyKey, receiver);
-            if (typeof value === 'function' || typeof propertyKey !== 'string' || target.$$isAtom()) {
-                return value;
-            }
+        Object.defineProperty(observableTarget, propertyKey, descriptor);
+    };
 
-            if (needObservable(value)) {
-                value = observable(value || {}, options, propertyKey, target);
-                Reflect.set(target, propertyKey, value, receiver);
-            }
+    let properties = ['$$value'];
+    if (!isAtom(observableTarget)) {
+        properties = properties.concat(Object.keys(observableTarget));
+    }
 
-            if (options.watch) {
-                options.watch(transformName(target.$$name, propertyKey));
-            }
+    properties.forEach(handler);
 
-            return value;
-        },
-        ownKeys: (target) => {
-            return getOwnKeys(target.$$getRealValue());
-        },
-        has: (target, propertyKey) => {
-            return Reflect.has(target.$$getRealValue(), propertyKey);
-        },
-        getOwnPropertyDescriptor: (target, propertyKey) => {
-            return Reflect.getOwnPropertyDescriptor(target.$$getRealValue(), propertyKey);
-        },
-        defineProperty: (target, propertyKey, attributes) => {
-            return Reflect.defineProperty(target.$$getRealValue(), propertyKey, attributes);
-        },
-        getPrototypeOf: (target) => {
-            return Reflect.getPrototypeOf(target.$$defaultTarget);
-        }
-    });
-
-    return proxy;
+    return observableTarget;
 }
 
 export default observable;
