@@ -20,8 +20,5 @@
   "bugs": {
     "url": "https://github.com/ohflying/doy/issues"
   },
-  "homepage": "https://github.com/ohflying/doy#readme",
-  "dependencies": {
-    "react-native": "^0.41.2"
-  }
+  "homepage": "https://github.com/ohflying/doy#readme"
 }
