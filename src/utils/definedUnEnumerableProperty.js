@@ -4,10 +4,12 @@
  **/
 
 export default function definedUnEnumerableProperty(obj, property, value) {
-    Object.defineProperty(obj, property, {
-        writable: false,
-        enumerable: false,
-        configurable: true,
-        value: value
-    });
+    if (Object.isExtensible(obj)) {
+        Object.defineProperty(obj, property, {
+            writable: false,
+            enumerable: false,
+            configurable: true,
+            value: value
+        });
+    }
 };

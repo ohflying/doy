@@ -3,7 +3,7 @@
  * Date  : 17/2/17
  **/
 
-import { isObservable, isAtom } from '../types/ObservableObject';
+import { isObservable, isAtom, isExtensible } from '../types/ObservableObject';
 import ObservableFactory from '../types/ObservableFactory';
 import transformName from '../utils/transformName';
 import shallowClone from '../utils/shallowClone';
@@ -12,8 +12,20 @@ function isPrivateValue(propertyKey) {
     return propertyKey === '$$value';
 }
 
+function isObject(obj) {
+    return obj != null && typeof obj == 'object'
+}
+
+function supportType(obj) {
+    if (isExtensible(obj) || !obj.constructor || !obj.constructor.name) { //Object
+        return true;
+    }
+
+    return ['Object', 'Array', 'Map', 'Set'].includes(obj.constructor.name);
+}
+
 function needObservable(obj) {
-    return obj != null && typeof obj == 'object' && Object.isExtensible(obj) && !isAtom(obj);
+    return isObject(obj) && supportType(obj) && Object.isExtensible(obj) && !isAtom(obj);
 }
 
 function jointNewChild(target, options) {
@@ -29,7 +41,7 @@ function jointNewChild(target, options) {
     return true;
 }
 
-function observable(defaultTarget: object, options = {}, targetName: string = "", parentTarget: Object) {
+function observable(defaultTarget: Object, options: Object = {}, targetName: string = "", parentTarget: Object) {
     let target = ObservableFactory.create(defaultTarget, targetName, parentTarget);
     if (target == null) {
         return defaultTarget;

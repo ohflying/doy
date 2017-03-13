@@ -6,6 +6,7 @@
 import $Scope, {$rootScope} from './src/core/$Scope';
 import extend from './src/core/extend';
 import atom from './src/core/atom';
+import extensible from './src/core/extensible';
 
 export default class Doy {
     static $rootScope: $Scope = $rootScope;
@@ -16,4 +17,8 @@ export default class Doy {
     static atom(obj: Object): Object {
         return atom(obj);
     }
-}
+
+    static extensible(obj: Object): Object {
+        return extensible(obj);
+    }
+};

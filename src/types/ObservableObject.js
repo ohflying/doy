@@ -39,3 +39,7 @@ export const isObservable = (obj) => {
 export const isAtom = (obj) => {
     return obj && obj.$$atom;
 };
+
+export const isExtensible = (obj) => {
+    return obj && obj.$$extensible;
+};
