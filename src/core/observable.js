@@ -13,7 +13,7 @@ function isPrivateValue(propertyKey) {
 }
 
 function needObservable(obj) {
-    return obj != null && typeof obj == 'object' && !isAtom(obj);
+    return obj != null && typeof obj == 'object' && Object.isExtensible(obj) && !isAtom(obj);
 }
 
 function jointNewChild(target, options) {
