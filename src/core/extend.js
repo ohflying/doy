@@ -25,6 +25,8 @@ export default function extend(options: Object = { template: null, inheritor: nu
             super(props, context);
             this.displayName = options.name;
             this.$scope = (this.context.$curScope || $rootScope).$new({props: Object.assign(atom({}), props)}, options.name);
+            this.$scope.$$wrapper = this;
+
             if (options.inheritor) {
                 options.inheritor(this.$scope, this.$scope.store);
             }
