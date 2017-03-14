@@ -26,6 +26,10 @@ function isES6Set(obj) {
 
 export default class ObservableFactory {
     static create(defaultTarget: Object, targetName: String = "", parentTarget: ObservableObject = null) {
+        if (!Object.isExtensible(defaultTarget)) {
+            return null;
+        }
+
         if (isObservable(defaultTarget)) {
             return Object.assign(defaultTarget, {
                 $$targetName: targetName,
