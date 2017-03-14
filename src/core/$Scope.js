@@ -27,7 +27,7 @@ class $Scope {
     }
 
     $watch(modal: String, listener: Function): void {
-        return this.eventManager.addEventListener(`\$\$${modal}`, listener);
+        return this.eventManager.addEventListener(`\$\$${modal.replace(/\./g, '$')}`, listener);
     }
 
     $on(eventName: String, listener: Function): void {
