@@ -7,6 +7,7 @@ import ObservableArray from './ObservableArray';
 import ObservableObject, {isObservable} from './ObservableObject';
 import ObservableMap from './ObservableMap';
 import ObservableSet from './ObservableSet';
+import isObjectExtensible from '../utils/isObjectExtensible';
 
 function isArray(obj) {
     return Array.isArray(obj);
@@ -26,7 +27,7 @@ function isES6Set(obj) {
 
 export default class ObservableFactory {
     static create(defaultTarget: Object, targetName: String = "", parentTarget: ObservableObject = null) {
-        if (!Object.isExtensible(defaultTarget)) {
+        if (!isObjectExtensible(defaultTarget)) {
             return null;
         }
 

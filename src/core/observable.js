@@ -7,6 +7,7 @@ import { isObservable, isAtom, isExtensible } from '../types/ObservableObject';
 import ObservableFactory from '../types/ObservableFactory';
 import transformName from '../utils/transformName';
 import shallowClone from '../utils/shallowClone';
+import isObjectExtensible from '../utils/isObjectExtensible';
 
 function isPrivateValue(propertyKey) {
     return propertyKey === '$$value';
@@ -25,7 +26,7 @@ function supportType(obj) {
 }
 
 function needObservable(obj) {
-    return isObject(obj) && supportType(obj) && Object.isExtensible(obj) && !isAtom(obj);
+    return isObject(obj) && supportType(obj) && isObjectExtensible(obj) && !isAtom(obj);
 }
 
 function jointNewChild(target, options) {

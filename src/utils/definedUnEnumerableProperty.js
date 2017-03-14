@@ -3,8 +3,10 @@
  * Date  : 17/3/9
  **/
 
+import isObjectExtensible from './isObjectExtensible';
+
 export default function definedUnEnumerableProperty(obj, property, value) {
-    if (Object.isExtensible(obj)) {
+    if (isObjectExtensible(obj)) {
         Object.defineProperty(obj, property, {
             writable: false,
             enumerable: false,
