@@ -68,7 +68,7 @@ function observable(defaultTarget: Object, options: Object = {}, targetName: str
             },
             set: function(value) {
                 let oldValue = observableTarget[propertyKey];
-                if (!isPrivateValue(propertyKey) && oldValue == value) {
+                if (!isPrivateValue(propertyKey) && oldValue === value) {
                     return true;
                 }
 
