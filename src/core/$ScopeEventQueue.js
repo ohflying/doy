@@ -5,6 +5,7 @@
 
 import $ScopeEvent from './$ScopeEvent';
 import $Scope from './$Scope';
+
 const STATE = {
     IDLE: 1,
     RUNNING: 2
@@ -36,15 +37,15 @@ export default class $ScopeEventQueue {
         this._destroyed = false;
     }
 
-    emit(eventName: String, payload: Object = {}, sync:Boolean = false): Function {
+    emit(eventName: String, payload: Object = null, sync:Boolean = false): Function {
         return this._push([EMIT_TYPE.SELF, EMIT_TYPE.PARENT], $ScopeEvent.create(eventName, payload, sync));
     }
 
-    broadcast(eventName: String, payload: Object = {}, sync:Boolean = false ): Function {
+    broadcast(eventName: String, payload: Object = null, sync:Boolean = false ): Function {
         return this._push([EMIT_TYPE.SELF, EMIT_TYPE.CHILDREN], $ScopeEvent.create(eventName, payload, sync));
     }
 
-    fire(eventName: String, payload: Object = {}, sync:Boolean = false): Function {
+    fire(eventName: String, payload: Object = null, sync:Boolean = false): Function {
         return this._push([EMIT_TYPE.SELF], $ScopeEvent.create(eventName, payload, sync));
     }
 
@@ -62,6 +63,14 @@ export default class $ScopeEventQueue {
             return EMPTY;
         }
 
+        let oldEvents = this._getEmitActionInQueue(scopeEvent);
+        oldEvents.forEach((event) => {
+            let index = this._queue.indexOf(event);
+            if (index >= 0) {
+                this._queue.splice(index, 1);
+            }
+        });
+
         this._queue.push(scopeEvent);
 
         if (this._state !== STATE.RUNNING) {
@@ -74,12 +83,12 @@ export default class $ScopeEventQueue {
     }
 
     _canFilterEvent(scopeEvent: Object): Boolean {
-        return !this._scope.eventManager.isExisted(scopeEvent.event.name) || this._existEmitActionInQueue(scopeEvent);
+        return !this._scope.eventManager.isExisted(scopeEvent.event.name);
     }
 
-    _existEmitActionInQueue(scopeEvent: Object): Boolean {
-        return this._queue.some((event) => {
-            return isEqualArray(event.types, scopeEvent.types) && event.event.equals(scopeEvent.event);
+    _getEmitActionInQueue(scopeEvent: Object): $ScopeEvent {
+        return this._queue.filter((event) => {
+            return isEqualArray(event.types, scopeEvent.types) && event.event.name === scopeEvent.event.name;
         });
     }
 

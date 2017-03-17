@@ -34,15 +34,15 @@ class $Scope {
         return this.eventManager.addEventListener(eventName, listener);
     }
 
-    $emit(eventName: String, payload: Object = {}, sync: Boolean = false): void {
+    $emit(eventName: String, payload: Object = null, sync: Boolean = false): void {
         return this.eventManager.emit(eventName, payload, sync);
     }
 
-    $broadcast(eventName: String, payload: Object = {}, sync: Boolean = false): void {
+    $broadcast(eventName: String, payload: Object = null, sync: Boolean = false): void {
         return this.eventManager.broadcast(eventName, payload, sync);
     }
 
-    $fire(eventName: String, payload: Object = {}, sync: Boolean = false): void {
+    $fire(eventName: String, payload: Object = null, sync: Boolean = false): void {
         return this.eventManager.fire(eventName, payload, sync);
     }
 

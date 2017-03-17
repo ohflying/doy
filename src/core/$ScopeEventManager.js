@@ -47,15 +47,15 @@ export default class $ScopeEventManager {
         return this._listeners.get(eventName);
     }
 
-    emit(eventName: String, payload: Object = {}, sync: Boolean = false): void {
+    emit(eventName: String, payload: Object = null, sync: Boolean = false): void {
         return this._eventQueue.emit(eventName, payload, sync);
     }
 
-    broadcast(eventName: String, payload: Object, sync: Boolean = false): void {
+    broadcast(eventName: String, payload: Object = null, sync: Boolean = false): void {
         return this._eventQueue.broadcast(eventName, payload, sync);
     }
 
-    fire(eventName: String, payload: Object, sync: Boolean = false): void {
+    fire(eventName: String, payload: Object = null, sync: Boolean = false): void {
         return this._eventQueue.fire(eventName, payload, sync);
     }
 

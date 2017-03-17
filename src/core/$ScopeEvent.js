@@ -4,7 +4,7 @@
  **/
 
 export default class $ScopeEvent {
-    constructor(name: String, payload: Object = {}, sync: Boolean = false) {
+    constructor(name: String, payload: Object = null, sync: Boolean = false) {
         this._name = name;
         this._payload = payload;
         this._sync = sync;
