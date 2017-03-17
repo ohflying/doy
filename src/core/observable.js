@@ -75,8 +75,10 @@ function observable(defaultTarget: Object, options: Object = {}, targetName: str
                 if (!isAtom(observableTarget)) {
                     if (isPrivateValue(propertyKey)) { //reobserver
                         observableTarget = observable(observableTarget, options, observableTarget.$$name, observableTarget.$$parent);
-                    } else {
+                    } else if (!isAtom(value)) {
                         descriptor._value = observable(value, options, propertyKey, observableTarget);
+                    } else {
+                        descriptor._value = value;
                     }
                 }
 

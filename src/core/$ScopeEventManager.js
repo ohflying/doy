@@ -15,7 +15,7 @@ export default class $ScopeEventManager {
 
     addEventListener(eventName: String, listener: Function): Function {
         if (this._destroyed) {
-            throw new Error('the EventManager has destroyed, please check your source logic');
+            return console.warn('the EventManager has destroyed, please check your source logic');
         }
 
         let listeners = this._listeners.get(eventName) || [];

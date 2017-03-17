@@ -67,7 +67,7 @@ class $Scope {
     }
 
     _getObservableOption(): void {
-        let watchNames = [];
+        let watchNames = new Set();
         let _self = this;
         return {
             changed: (name) => {
@@ -76,16 +76,16 @@ class $Scope {
                 if (_self.eventManager.isExisted(eventName)) {
                     _self.$fire(eventName);
                 }
+
+                if (watchNames.has(eventName)) { //apply render!
+                    _self.$apply();
+                }
             },
             watch: (name) => {
                 let eventName = `\$\$${name}`;
-                if (_self._canWatch && !watchNames.includes(eventName)) {
+                if (_self._canWatch && !watchNames.has(eventName)) {
                     Reporter.print(`$Scope[${this._name}].Store[${eventName}] has watched!`);
-                    _self.eventManager.addEventListener(eventName, () => {
-                        _self.$apply();
-                    });
-
-                    watchNames.push(eventName);
+                    watchNames.add(eventName);
                 }
             }
         }

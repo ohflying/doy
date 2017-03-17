@@ -8,6 +8,10 @@ export const Reporter = {
     enabled: true,
     printFn: null,
     print: (msg) => {
+        if (!Reporter.enabled) {
+            return;
+        }
+
         let fn = Reporter.printFn || console.log;
         if (fn) {
             try {

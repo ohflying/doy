@@ -50,7 +50,7 @@ export default class $ScopeEventQueue {
 
     _push(emitTypes: Array, event: $ScopeEvent): Function {
         if (this._destroyed) {
-            throw new Error('the EventQueue has destroyed, please check your source loginc');
+            return console.warn(`receive a new event[${event.name}], but the EventQueue has destroyed, please check your source loginc`);
         }
 
         let scopeEvent = {
@@ -127,6 +127,10 @@ export default class $ScopeEventQueue {
                 let listeners = scope.eventManager.getListenersByEventName(event.name);
                 if (listeners) {
                     listeners.forEach((listener) => {
+                        if (!listener) {
+                            return;
+                        }
+
                         const _do = () => {
                             if (!this._destroyed) listener(event);
                         };
