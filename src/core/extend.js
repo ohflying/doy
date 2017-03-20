@@ -86,7 +86,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
         }
 
         _delayDestroy() {
-            setTimeout(() => {this.$scope.$destroy()});
+            setTimeout(() => {console.log(`${this.displayName}`);this.$scope.$destroy()});
         }
 
         render() {

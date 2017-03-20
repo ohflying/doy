@@ -9,6 +9,13 @@ import transformName from '../utils/transformName';
 import shallowClone from '../utils/shallowClone';
 import isObjectExtensible from '../utils/isObjectExtensible';
 
+class JointWarpper {
+    constructor(target) {
+        this.$$joint = true;
+        this.target = target;
+    }
+}
+
 function isPrivateValue(propertyKey) {
     return propertyKey === '$$value';
 }
@@ -35,7 +42,7 @@ function jointNewChild(target, options) {
     }
 
     let newTarget = shallowClone(target);
-    target.$$parent[target.$$targetName] = observable(newTarget, options, target.$$targetName, target.$$parent);
+    target.$$parent[target.$$targetName] = new JointWarpper(observable(newTarget, options, target.$$targetName, target.$$parent),);
 
     jointNewChild(target.$$parent, options);
 
@@ -67,6 +74,12 @@ function observable(defaultTarget: Object, options: Object = {}, targetName: str
                 return descriptor._value;
             },
             set: function(value) {
+                let isJoint = false;
+                if (value instanceof JointWarpper) {
+                    isJoint = value.$$joint;
+                    value = value.target;
+                }
+
                 let oldValue = observableTarget[propertyKey];
                 if (!isPrivateValue(propertyKey) && oldValue === value) {
                     return true;
@@ -82,10 +95,10 @@ function observable(defaultTarget: Object, options: Object = {}, targetName: str
                     }
                 }
 
-                let fired = jointNewChild(observableTarget, options);
+                jointNewChild(observableTarget, options);
 
-                //if the target parent not null, the changed event has fired in recursionUpdate function;
-                if (isPrivateValue(propertyKey) && fired) {
+                //if the target parent not null, the changed event has fired in jointNewChild function;
+                if (isJoint) {
                     return true;
                 }
 
