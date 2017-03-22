@@ -26,6 +26,30 @@ class $Scope {
         }
     }
 
+    $injectorProperty(propertyKey, callback) {
+        if (!this.$$wrapper) {
+            return false;
+        }
+
+        Object.defineProperty(this.$$wrapper, propertyKey, {
+            get: () => {
+                return callback();
+            }
+        });
+
+        return true;
+    }
+
+    $injectorMethod(methodName, callback) {
+        if (!this.$$wrapper) {
+            return false;
+        }
+
+        Object.defineProperty(this.$$wrapper, methodName, callback);
+
+        return true;
+    }
+
     $watch(modal: String, listener: Function): void {
         return this.eventManager.addEventListener(`\$\$${modal.replace(/\./g, '$')}`, listener);
     }
