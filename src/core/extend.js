@@ -24,6 +24,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
         constructor(props: Object, context: Object) {
             super(props, context);
             this.displayName = options.name;
+            this.handlerAppStateChanged = this._handlerAppStateChanged.bind(this);
             this.$scope = (this.context.$curScope || $rootScope).$new({props: Object.assign(atom({}), props)}, options.name);
             this.$scope.$$wrapper = this;
 
@@ -38,13 +39,13 @@ export default function extend(options: Object = { template: null, inheritor: nu
 
         componentWillMount() {
             this.$scope.$fire(VIEW_LIFECYCLE_EVENT.LOADED);
-            AppState.addEventListener('change', this._handlerAppStateChanged.bind(this));
+            AppState.addEventListener('change', this.handlerAppStateChanged);
 
             this._handlerAppStateChanged(AppState.currentState);
         }
 
         componentWillUnmount() {
-            AppState.removeEventListener('change', this._handlerAppStateChanged.bind(this));
+            AppState.removeEventListener('change', this.handlerAppStateChanged);
             this.$scope.$fire(VIEW_LIFECYCLE_EVENT.UNLOADED, {}, true);
             this.unmount = true;
 
