@@ -1,6 +1,6 @@
 {
   "name": "doy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "针对于React-native的小型MVVM框架",
   "main": "Doy.js",
   "scripts": {
@@ -16,9 +16,16 @@
     "doy"
   ],
   "author": "ohflying",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/ohflying/doy/issues"
   },
-  "homepage": "https://github.com/ohflying/doy#readme"
+  "homepage": "https://github.com/ohflying/doy#readme",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "react-native": "^0.41.2"
+  },
+  "devDependencies": {}
 }
