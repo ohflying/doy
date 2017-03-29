@@ -38,7 +38,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
         }
 
         componentWillMount() {
-            this.$scope.$fire(VIEW_LIFECYCLE_EVENT.LOADED);
+            this.$scope.$fire(VIEW_LIFECYCLE_EVENT.LOADED, null, true);
             AppState.addEventListener('change', this.handlerAppStateChanged);
 
             this._handlerAppStateChanged(AppState.currentState);
@@ -46,7 +46,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
 
         componentWillUnmount() {
             AppState.removeEventListener('change', this.handlerAppStateChanged);
-            this.$scope.$fire(VIEW_LIFECYCLE_EVENT.UNLOADED, {}, true);
+            this.$scope.$fire(VIEW_LIFECYCLE_EVENT.UNLOADED, null, true);
             this.unmount = true;
 
             this._delayDestroy();
