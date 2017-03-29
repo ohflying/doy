@@ -3,7 +3,6 @@
  * Date  : 17/2/24
  **/
 
-
 export const Reporter = {
     enabled: true,
     printFn: null,
