@@ -44,7 +44,7 @@ export default class $ScopeEvent {
         return this.name === event.name && this.payload === event.payload;
     }
 
-    static create(eventName: String, payload: Object): $ScopeEvent {
-        return new $ScopeEvent(eventName, payload);
+    static create(eventName: String, payload: Object, sync: Boolean = false): $ScopeEvent {
+        return new $ScopeEvent(eventName, payload, sync);
     }
 }

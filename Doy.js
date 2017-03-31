@@ -7,6 +7,7 @@ import $Scope, {$rootScope} from './src/core/$Scope';
 import extend from './src/core/extend';
 import atom from './src/core/atom';
 import extensible from './src/core/extensible';
+import why from './src/core/why';
 
 export default class Doy {
     static $rootScope: $Scope = $rootScope;
@@ -20,5 +21,9 @@ export default class Doy {
 
     static extensible(obj: Object): Object {
         return extensible(obj);
+    }
+
+    static why(enabled: Boolean, printFn: Function) {
+        return why(enabled, printFn);
     }
 };

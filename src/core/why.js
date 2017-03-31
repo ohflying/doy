@@ -4,7 +4,7 @@
  **/
 
 export const Reporter = {
-    enabled: true,
+    enabled: false,
     printFn: null,
     print: (msg) => {
         if (!Reporter.enabled) {
