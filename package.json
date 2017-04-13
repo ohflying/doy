@@ -1,6 +1,6 @@
 {
   "name": "doy",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "针对于React-native的小型MVVM框架",
   "main": "Doy.js",
   "scripts": {
