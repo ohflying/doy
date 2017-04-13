@@ -23,7 +23,6 @@ export default function extend(options: Object = { template: null, inheritor: nu
         $scope: $Scope = null;
         constructor(props: Object, context: Object) {
             super(props, context);
-            this.displayName = options.name;
             this.handlerAppStateChanged = this._handlerAppStateChanged.bind(this);
             this.$scope = (this.context.$curScope || $rootScope).$new({props: Object.assign(atom({}), props)}, options.name);
             this.$scope.$$wrapper = this;
@@ -32,7 +31,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
                 options.inheritor(this.$scope, this.$scope.store);
             }
 
-            Reporter.print(`_DoyView[${this.displayName}]`);
+            Reporter.print(`_DoyView[${_DoyView.displayName}]`);
 
             this._bindEvent();
         }
@@ -53,7 +52,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
         }
 
         componentWillReceiveProps(nextProps: Object) {
-            Reporter.print(`componentWillReceiveProps[${this.displayName}] ${!shallowEqual(this.props, nextProps)} `);
+            Reporter.print(`componentWillReceiveProps[${_DoyView.displayName}] ${!shallowEqual(this.props, nextProps)} `);
 
             if (!shallowEqual(this.props, nextProps)) {
                 this.$scope.store.props = Object.assign(atom({}), nextProps);
@@ -70,7 +69,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
 
         _bindEvent() {
             this.$scope.$on($Scope.NEED_RENDER, () => {
-                Reporter.print(`View[${this.displayName}] need render!`);
+                Reporter.print(`View[${_DoyView.displayName}] need render!`);
                 if (!this.unmount) {
                     this.forceUpdate();
                 }
@@ -88,7 +87,7 @@ export default function extend(options: Object = { template: null, inheritor: nu
 
         _delayDestroy() {
             setTimeout(() => {
-                Reporter.print(`${this.displayName} destroyed!`);
+                Reporter.print(`${_DoyView.displayName} destroyed!`);
                 this.$scope.$destroy()
             });
         }
@@ -101,6 +100,8 @@ export default function extend(options: Object = { template: null, inheritor: nu
             return template;
         }
     }
+
+    _DoyView.displayName = options.name;
 
     _DoyView.childContextTypes = {
         $curScope: React.PropTypes.object
