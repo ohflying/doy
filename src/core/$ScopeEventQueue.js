@@ -83,6 +83,9 @@ export default class $ScopeEventQueue {
     }
 
     _canFilterEvent(scopeEvent: Object): Boolean {
+        if (scopeEvent.types.length > 1 || scopeEvent.types[0] !== EMIT_TYPE.SELF) {
+            return false;
+        }
         return !this._scope.eventManager.isExisted(scopeEvent.event.name);
     }
 
