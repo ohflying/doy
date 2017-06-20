@@ -8,6 +8,7 @@ import ObservableFactory from '../types/ObservableFactory';
 import transformName from '../utils/transformName';
 import shallowClone from '../utils/shallowClone';
 import isObjectExtensible from '../utils/isObjectExtensible';
+import definedUnEnumerableProperty from '../utils/definedUnEnumerableProperty';
 
 class JointWarpper {
     constructor(target) {
@@ -61,6 +62,11 @@ function observable(defaultTarget: Object, options: Object = {}, targetName: str
         let propertyValue = observableTarget[propertyKey];
         if (!isPrivateValue(propertyKey) && needObservable(propertyValue)) {
             observableTarget[propertyKey] = observable(propertyValue, options, propertyKey, observableTarget);
+        }
+
+        //fix In a observable object modified, failed to modify the object of parent
+        if (!isPrivateValue(propertyKey) && isObservable(propertyValue) && propertyValue.$$parent != observableTarget) {
+            definedUnEnumerableProperty(observableTarget[propertyKey], '$$parent', observableTarget);
         }
 
         let descriptor = {
