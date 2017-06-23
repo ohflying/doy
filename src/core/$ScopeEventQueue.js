@@ -91,7 +91,7 @@ export default class $ScopeEventQueue {
 
     _getEmitActionInQueue(scopeEvent: Object): $ScopeEvent {
         return this._queue.filter((event) => {
-            return isEqualArray(event.types, scopeEvent.types) && event.event.name === scopeEvent.event.name;
+            return isEqualArray(event.types, scopeEvent.types) && event.event.equals(scopeEvent.event);
         });
     }
 

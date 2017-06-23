@@ -3,6 +3,8 @@
  * Date  : 17/2/16
  **/
 
+import shallowEquals from '../utils/shallowEquals';
+
 export default class $ScopeEvent {
     constructor(name: String, payload: Object = null, sync: Boolean = false) {
         this._name = name;
@@ -41,7 +43,7 @@ export default class $ScopeEvent {
             return false;
         }
 
-        return this.name === event.name && this.payload === event.payload;
+        return this.name === event.name && shallowEquals(this.payload, event.payload);
     }
 
     static create(eventName: String, payload: Object, sync: Boolean = false): $ScopeEvent {
