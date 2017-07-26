@@ -39,28 +39,50 @@ export default class $ScopeEventManager {
     }
 
     isExisted(eventName: String): Boolean {
+        if (this._destroyed) {
+            return false;
+        }
+
         let listeners = this._listeners.get(eventName);
         return listeners && listeners.length > 0;
     }
 
     getListenersByEventName(eventName: String): Array {
+        if (this._destroyed) {
+            return null;
+        }
+
         return this._listeners.get(eventName);
     }
 
     emit(eventName: String, payload: Object = null, sync: Boolean = false): void {
+        if (this._destroyed) {
+            return null;
+        }
+
         return this._eventQueue.emit(eventName, payload, sync);
     }
 
     broadcast(eventName: String, payload: Object = null, sync: Boolean = false): void {
+        if (this._destroyed) {
+            return null;
+        }
+
         return this._eventQueue.broadcast(eventName, payload, sync);
     }
 
     fire(eventName: String, payload: Object = null, sync: Boolean = false): void {
+        if (this._destroyed) {
+            return null;
+        }
+
         return this._eventQueue.fire(eventName, payload, sync);
     }
 
     destroy(): void {
         this._destroyed = true;
         this._eventQueue.destroy();
+        this._eventQueue = null;
+        this._listeners = null;
     }
 }
