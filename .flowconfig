@@ -1,0 +1,14 @@
+[ignore]
+.*/node_modules/.*
+
+[libs]
+./flow
+./flow-typed
+
+[options]
+experimental.strict_type_args=true
+
+suppress_comment=\\(.\\|\n\\)*\\$FlowIgnore
+
+unsafe.enable_getters_and_setters=true
+

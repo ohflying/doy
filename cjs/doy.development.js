@@ -353,10 +353,10 @@ var $ScopeEventQueue = function () {
     }, {
         key: '_sendEvent',
         value: function _sendEvent(getScopesFn, event) {
-            var recursionIndex = 0;
-            function _run(scopes, event) {
-                var _this4 = this;
+            var _this4 = this;
 
+            var recursionIndex = 0;
+            var _run = function _run(scopes, event) {
                 if (!scopes || !event.valid()) {
                     return;
                 }
@@ -394,7 +394,7 @@ var $ScopeEventQueue = function () {
                         });
                     }
                 });
-            }
+            };
 
             //$FlowFixMe: the getScopeFn can't be null
             _run(getScopesFn(this._scope, recursionIndex), event);
@@ -764,10 +764,7 @@ var ObservableFactory = function () {
             }
 
             if (isObservable(defaultTarget)) {
-                return Object.assign(defaultTarget, {
-                    $$targetName: targetName,
-                    $$parent: parentTarget
-                });
+                return defaultTarget;
             }
 
             if (isArray(defaultTarget)) {
@@ -793,27 +790,6 @@ var ObservableFactory = function () {
     return ObservableFactory;
 }();
 
-function shallowClone(obj) {
-    if (obj === null || (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
-        return obj;
-    }
-
-    var className = obj.constructor ? obj.constructor.name : '';
-
-    if (className === 'Set' || className === 'Map') {
-        return new obj.constructor(obj);
-    } else {
-        return Object.assign(new obj.constructor(), obj); // eslint-disable-line
-    }
-}
-
-var JointWrapper = function JointWrapper(target) {
-    classCallCheck(this, JointWrapper);
-    this.$$joint = true;
-
-    this.target = target;
-};
-
 function isPrivateValue(propertyKey) {
     return propertyKey === '$$value';
 }
@@ -833,19 +809,6 @@ function supportType(obj) {
 
 function needObservable(obj) {
     return isObject(obj) && supportType(obj) && isObjectExtensible(obj) && !isAtom(obj);
-}
-
-function jointNewChild(target, options) {
-    if (!target || (typeof target === 'undefined' ? 'undefined' : _typeof(target)) !== 'object' || !target.$$parent || !target.$$targetName) {
-        return false;
-    }
-
-    var newTarget = shallowClone(target);
-    target.$$parent[target.$$targetName] = new JointWrapper(observable(newTarget, options, target.$$targetName, target.$$parent));
-
-    jointNewChild(target.$$parent, options);
-
-    return true;
 }
 
 function observable(defaultTarget) {
@@ -875,16 +838,18 @@ function observable(defaultTarget) {
             _value: observableTarget[propertyKey],
             enumerable: !propertyKey.startsWith('$$'),
             get: function get$$1() {
-                options && options.watch && options.watch(transformName(observableTarget.$$name, isAtom(observableTarget) || isPrivateValue(propertyKey) ? '' : propertyKey));
+                var name = transformName(observableTarget.$$name, isAtom(observableTarget) || isPrivateValue(propertyKey) ? '' : propertyKey);
+
+                options && options.watch && options.watch(name);
 
                 return descriptor._value;
             },
             set: function set$$1(value) {
-                var isJoint = false;
-                if (value instanceof JointWrapper) {
-                    isJoint = value.$$joint;
-                    value = value.target;
-                }
+                //let isJoint = false;
+                //if (value instanceof JointWrapper) {
+                //    isJoint = value.$$joint;
+                //    value = value.target;
+                //}
 
                 var oldValue = descriptor._value;
                 if (!isPrivateValue(propertyKey) && oldValue === value) {
@@ -902,14 +867,16 @@ function observable(defaultTarget) {
                     }
                 }
 
-                jointNewChild(observableTarget, options);
+                //jointNewChild(observableTarget, options);
 
                 //if the target parent not null, the changed event has fired in jointNewChild function;
-                if (isJoint) {
-                    return true;
-                }
+                //if (isJoint) {
+                //    return true;
+                //}
 
-                options && options.changed && options.changed(transformName(observableTarget.$$name, isAtom(observableTarget) || isPrivateValue(propertyKey) ? '' : propertyKey));
+                if (!isPrivateValue(propertyKey)) {
+                    options && options.changed && options.changed(transformName(observableTarget.$$name, isAtom(observableTarget) ? '' : propertyKey));
+                }
             }
         };
 
@@ -951,26 +918,31 @@ function why(enabled, printFn) {
 }
 
 var $Scope = function () {
-
-    // public
-
-
-    // protected
+    // static
     function $Scope(parentScope) {
         var defaultStore = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
         var name = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
         classCallCheck(this, $Scope);
         this._canWatch = false;
         this._destroyed = false;
-        this.$$wrapper = null;
         this.childScopes = [];
 
         this._name = name;
         this.eventManager = new $ScopeEventManager(this);
-        this.store = observable(defaultStore || {}, this._getObservableOption(), 'store', null);
         this._setParentScope(parentScope);
+
+        Object.defineProperty(this, 'store', {
+            writable: false,
+            enumerable: true,
+            configurable: true,
+            value: observable(defaultStore || {}, this._getObservableOption(), 'store', null)
+        });
     }
-    // static
+
+    // public
+
+
+    // protected
 
 
     createClass($Scope, [{
@@ -1033,15 +1005,15 @@ var $Scope = function () {
             this._destroyed = true;
         }
     }, {
-        key: '$startWatch',
-        value: function $startWatch() {
-            this.store.$$notify();
-            this._canWatch = true;
-        }
-    }, {
-        key: '$endWatch',
-        value: function $endWatch() {
-            this._canWatch = false;
+        key: '$action',
+        value: function $action(fn) {
+            try {
+                this.store.$$notify();
+                this._canWatch = true;
+                return fn();
+            } finally {
+                this._canWatch = false;
+            }
         }
     }, {
         key: '_getObservableOption',
@@ -1053,7 +1025,7 @@ var $Scope = function () {
             return {
                 changed: function changed(name) {
                     var eventName = '$$' + name;
-                    Reporter.print('$Scope[' + _this._name + '].Store[' + eventName + '] has changed!');
+                    Reporter.print('[CHANGED] $Scope[' + _this._name + '].Store[' + eventName + ']');
                     if (_self.eventManager.isExisted(eventName)) {
                         _self.$fire(eventName);
                     }
@@ -1066,7 +1038,7 @@ var $Scope = function () {
                 watch: function watch(name) {
                     var eventName = '$$' + name;
                     if (_self._canWatch && !watchNames.has(eventName)) {
-                        Reporter.print('$Scope[' + _this._name + '].Store[' + eventName + '] has watched!');
+                        Reporter.print('[WATCH] $Scope[' + _this._name + '].Store[' + eventName + ']');
                         watchNames.add(eventName);
                     }
                 }
