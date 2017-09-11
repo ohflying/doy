@@ -1,12 +1,9 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/24
- **/
+/* @flow */
 
 export const Reporter = {
     enabled: false,
     printFn: null,
-    print: (msg) => {
+    print: (msg: any) => {
         if (!Reporter.enabled) {
             return;
         }
@@ -21,7 +18,7 @@ export const Reporter = {
         }
     }
 };
-export default function why(enabled, printFn) {
+export default function why(enabled: boolean, printFn: any) {
     Reporter.enabled = enabled;
     Reporter.printFn = printFn;
 }

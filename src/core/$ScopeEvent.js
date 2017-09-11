@@ -1,32 +1,32 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/16
- **/
+/* @flow */
 
 import shallowEquals from '../utils/shallowEquals';
 
 export default class $ScopeEvent {
-    constructor(name: String, payload: Object = null, sync: Boolean = false) {
+    _name: string;
+    _payload: ?Object;
+    _sync: boolean;
+    _disposed: boolean = false;
+    _stoped: boolean = false;
+    constructor(name: string, payload: ?Object = null, sync: boolean = false) {
         this._name = name;
         this._payload = payload;
         this._sync = sync;
-        this._disposed = false;
-        this._stoped = false;
     }
 
-    get name(): String {
+    get name(): string {
         return this._name;
     }
 
-    get payload(): Object {
+    get payload(): ?Object {
         return this._payload;
     }
 
-    get sync(): Boolean {
+    get sync(): boolean {
         return this._sync;
     }
 
-    valid(): Boolean {
+    valid(): boolean {
         return !this._disposed && !this._stoped;
     }
 
@@ -38,15 +38,15 @@ export default class $ScopeEvent {
         this._stoped = true;
     }
 
-    equals(event: $ScopeEvent): Boolean {
-        if (typeof event != typeof this) {
+    equals(event: $ScopeEvent): boolean {
+        if (typeof event !== typeof this) {
             return false;
         }
 
         return this.name === event.name && shallowEquals(this.payload, event.payload);
     }
 
-    static create(eventName: String, payload: Object, sync: Boolean = false): $ScopeEvent {
+    static create(eventName: string, payload: ?Object, sync: boolean = false): $ScopeEvent {
         return new $ScopeEvent(eventName, payload, sync);
     }
 }

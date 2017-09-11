@@ -1,8 +1,5 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/22
- **/
+/* @flow */
 
-export default function transformName(targetName, propertyKey) {
-    return (targetName || "") + (propertyKey ? ((targetName ? "$" : "") + propertyKey) : "");
+export default function transformName(targetName: string, propertyKey: string): string {
+    return (targetName || '') + (propertyKey ? ((targetName ? '$' : '') + propertyKey) : '');
 }

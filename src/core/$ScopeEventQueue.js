@@ -1,8 +1,4 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/16
- **/
-
+/* @flow */
 import $ScopeEvent from './$ScopeEvent';
 import $Scope from './$Scope';
 
@@ -20,7 +16,7 @@ const EMIT_TYPE = {
 const EMPTY = function() {};
 
 const isEqualArray = function(first, second) {
-    if (first.length != second.length) {
+    if (first.length !== second.length) {
         return false;
     }
 
@@ -30,48 +26,50 @@ const isEqualArray = function(first, second) {
 };
 
 export default class $ScopeEventQueue {
+    _scope: $Scope;
+    // $FixIgnore
+    _queue: Array<EventWrapper> = [];
+    _state: number = STATE.IDLE;
+    _destroyed: boolean = false;
     constructor(scope: $Scope) {
         this._scope = scope;
-        this._queue = [];
-        this._state = STATE.IDLE;
-        this._destroyed = false;
     }
 
-    emit(eventName: String, payload: Object = null, sync:Boolean = false): Function {
+    emit(eventName: string, payload: ?Object = null, sync: boolean = false): ?Disposer {
         return this._push([EMIT_TYPE.SELF, EMIT_TYPE.PARENT], $ScopeEvent.create(eventName, payload, sync));
     }
 
-    broadcast(eventName: String, payload: Object = null, sync:Boolean = false ): Function {
+    broadcast(eventName: string, payload: ?Object = null, sync: boolean = false): ?Disposer {
         return this._push([EMIT_TYPE.SELF, EMIT_TYPE.CHILDREN], $ScopeEvent.create(eventName, payload, sync));
     }
 
-    fire(eventName: String, payload: Object = null, sync:Boolean = false): Function {
+    fire(eventName: string, payload: ?Object = null, sync: boolean = false): ?Disposer {
         return this._push([EMIT_TYPE.SELF], $ScopeEvent.create(eventName, payload, sync));
     }
 
-    _push(emitTypes: Array, event: $ScopeEvent): Function {
+    _push(emitTypes: Array<number>, event: $ScopeEvent): ?Disposer {
         if (this._destroyed) {
             return console.warn(`receive a new event[${event.name}], but the EventQueue has destroyed, please check your source loginc`);
         }
 
-        let scopeEvent = {
+        let eventWrapper: EventWrapper = {
             types: emitTypes,
             event: event
         };
 
-        if (this._canFilterEvent(scopeEvent)) { //丢弃
+        if (this._canFilterEvent(eventWrapper)) { //丢弃
             return EMPTY;
         }
 
-        let oldEvents = this._getEmitActionInQueue(scopeEvent);
-        oldEvents.forEach((event) => {
-            let index = this._queue.indexOf(event);
+        let oldEventWrappers = this._getEmitActionInQueue(eventWrapper);
+        oldEventWrappers.forEach((wrapper) => {
+            let index = this._queue.indexOf(wrapper);
             if (index >= 0) {
                 this._queue.splice(index, 1);
             }
         });
 
-        this._queue.push(scopeEvent);
+        this._queue.push(eventWrapper);
 
         if (this._state !== STATE.RUNNING) {
             this._runQueue();
@@ -82,16 +80,16 @@ export default class $ScopeEventQueue {
         };
     }
 
-    _canFilterEvent(scopeEvent: Object): Boolean {
-        if (scopeEvent.types.length > 1 || scopeEvent.types[0] !== EMIT_TYPE.SELF) {
+    _canFilterEvent(eventWrapper: EventWrapper): boolean {
+        if (eventWrapper.types.length > 1 || eventWrapper.types[0] !== EMIT_TYPE.SELF) {
             return false;
         }
-        return !this._scope.eventManager.isExisted(scopeEvent.event.name);
+        return !this._scope.eventManager.isExisted(eventWrapper.event.name);
     }
 
-    _getEmitActionInQueue(scopeEvent: Object): $ScopeEvent {
-        return this._queue.filter((event) => {
-            return isEqualArray(event.types, scopeEvent.types) && event.event.equals(scopeEvent.event);
+    _getEmitActionInQueue(eventWrapper: EventWrapper): Array<EventWrapper> {
+        return this._queue.filter((wrapper) => {
+            return isEqualArray(wrapper.types, eventWrapper.types) && wrapper.event.equals(eventWrapper.event);
         });
     }
 
@@ -101,7 +99,8 @@ export default class $ScopeEventQueue {
 
     _doNextEmitAction(): void {
         if (this._queue.length <= 0) {
-            return this._state = STATE.IDLE;
+            this._state = STATE.IDLE;
+            return;
         }
 
         this._state = STATE.RUNNING;
@@ -111,14 +110,14 @@ export default class $ScopeEventQueue {
             wrapper.types.forEach((type) => {
                 this._sendEvent((scope, recursionIndex) => {
                     if (type === EMIT_TYPE.SELF) {
-                        return recursionIndex == 0 ? [scope] : null;
+                        return recursionIndex === 0 ? [scope] : null;
                     } else if (type === EMIT_TYPE.CHILDREN) {
                         return scope.childScopes;
                     } else if (type === EMIT_TYPE.PARENT) {
                         return [scope.parentScope];
                     }
                 }, wrapper.event);
-            })
+            });
         }
 
         this._runQueue();
@@ -126,6 +125,7 @@ export default class $ScopeEventQueue {
 
     _sendEvent(getScopesFn: Function, event: Object): void {
         let recursionIndex = 0;
+        let self = this;
         function _run(scopes, event) {
             if (!scopes || !event.valid()) {
                 return;
@@ -144,13 +144,13 @@ export default class $ScopeEventQueue {
                         }
 
                         const _do = () => {
-                            if (!this._destroyed) listener(event);
+                            if (!self._destroyed) listener(event);
                         };
 
                         if (event.sync) {
                             _do();
                         } else {
-                            setTimeout(() => { _do();});
+                            setTimeout(() => { _do(); });
                         }
                     });
                 }

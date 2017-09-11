@@ -1,10 +1,7 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/3/14
- **/
+/* @flow */
 
-export default function isObjectExtensible(obj) {
-    if (obj === null || typeof obj != 'object') {
+export default function isObjectExtensible(obj: any): boolean {
+    if (obj === null || typeof obj !== 'object') {
         return false;
     }
 

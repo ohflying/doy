@@ -1,11 +1,8 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/3/9
- **/
+/* @flow */
 
 import isObjectExtensible from './isObjectExtensible';
 
-export default function definedUnEnumerableProperty(obj, property, value) {
+export default function definedUnEnumerableProperty(obj: any, property: string, value: any): void {
     if (isObjectExtensible(obj)) {
         Object.defineProperty(obj, property, {
             writable: false,
@@ -14,4 +11,4 @@ export default function definedUnEnumerableProperty(obj, property, value) {
             value: value
         });
     }
-};
+}

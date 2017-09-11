@@ -1,19 +1,17 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/16
- **/
+/* @flow */
 
 import $Scope from './$Scope';
 import $ScopeEventQueue from './$ScopeEventQueue';
 
 export default class $ScopeEventManager {
+    _eventQueue: $ScopeEventQueue;
+    _listeners: Map<string, Array<ScopeEventListener>> = new Map();
+    _destroyed: boolean = false;
     constructor($scope: $Scope) {
         this._eventQueue = new $ScopeEventQueue($scope);
-        this._listeners = new Map();
-        this._destroyed = false;
     }
 
-    addEventListener(eventName: String, listener: Function): Function {
+    addEventListener(eventName: string, listener: ScopeEventListener): ?Disposer {
         if (this._destroyed) {
             return console.warn('the EventManager has destroyed, please check your source logic');
         }
@@ -23,8 +21,9 @@ export default class $ScopeEventManager {
 
         this._listeners.set(eventName, listeners);
 
+        let self = this;
         return function disposer() {
-            let els = listeners.get(eventName);
+            let els = self._listeners.get(eventName);
             if (!els) {
                 return;
             }
@@ -35,27 +34,27 @@ export default class $ScopeEventManager {
             }
 
             els.splice(index, 1);
-        }
+        };
     }
 
-    isExisted(eventName: String): Boolean {
+    isExisted(eventName: string): boolean {
         let listeners = this._listeners.get(eventName);
-        return listeners && listeners.length > 0;
+        return !!listeners && listeners.length > 0;
     }
 
-    getListenersByEventName(eventName: String): Array {
+    getListenersByEventName(eventName: string): ?Array<ScopeEventListener> {
         return this._listeners.get(eventName);
     }
 
-    emit(eventName: String, payload: Object = null, sync: Boolean = false): void {
+    emit(eventName: string, payload: ?Object = null, sync: boolean = false): ?Disposer {
         return this._eventQueue.emit(eventName, payload, sync);
     }
 
-    broadcast(eventName: String, payload: Object = null, sync: Boolean = false): void {
+    broadcast(eventName: string, payload: ?Object = null, sync: boolean = false): ?Disposer {
         return this._eventQueue.broadcast(eventName, payload, sync);
     }
 
-    fire(eventName: String, payload: Object = null, sync: Boolean = false): void {
+    fire(eventName: string, payload: ?Object = null, sync: boolean = false): ?Disposer {
         return this._eventQueue.fire(eventName, payload, sync);
     }
 

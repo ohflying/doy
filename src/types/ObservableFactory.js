@@ -1,7 +1,4 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/22
- **/
+/* @flow */
 
 import ObservableArray from './ObservableArray';
 import ObservableObject, {isObservable} from './ObservableObject';
@@ -9,37 +6,34 @@ import ObservableMap from './ObservableMap';
 import ObservableSet from './ObservableSet';
 import isObjectExtensible from '../utils/isObjectExtensible';
 
-function isArray(obj) {
+function isArray(obj: any): boolean {
     return Array.isArray(obj);
 }
 
-function isES6Map(obj) {
-    return obj instanceof GLOBAL.Map;
+function isES6Map(obj: any): boolean {
+    return obj instanceof Map;
 }
 
-function isObject(obj) {
+function isObject(obj: any): boolean {
     return typeof obj === 'object';
 }
 
-function isES6Set(obj) {
-    return obj instanceof GLOBAL.Set;
+function isES6Set(obj: any): boolean {
+    return obj instanceof Set;
 }
 
 export default class ObservableFactory {
-    static create(defaultTarget: Object, targetName: String = "", parentTarget: ObservableObject = null) {
+    static create(defaultTarget: any, targetName: string = '', parentTarget: ?ObservableObject<*> = null): ObservableObject<*> | null {
         if (!isObjectExtensible(defaultTarget)) {
             return null;
         }
 
         if (isObservable(defaultTarget)) {
-            return Object.assign(defaultTarget, {
-                $$targetName: targetName,
-                $$parent: parentTarget
-            })
+            return defaultTarget;
         }
 
         if (isArray(defaultTarget)) {
-            return new ObservableArray(defaultTarget, targetName, parentTarget)
+            return new ObservableArray(defaultTarget, targetName, parentTarget);
         }
 
         if (isES6Map(defaultTarget)) {

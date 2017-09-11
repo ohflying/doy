@@ -1,32 +1,31 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/3/2
- **/
+/* @flow */
 import ObservableObject from './ObservableObject';
+import getProperty from '../utils/getProperty';
 import definedUnEnumerableProperty from '../utils/definedUnEnumerableProperty';
 
-export default class ObservableSet extends ObservableObject {
-    constructor(defaultTarget: Set, targetName: String, parent: ObservableObject) {
+//$FlowIgnore
+export default class ObservableSet extends ObservableObject<Set<*>> {
+    constructor(defaultTarget: Set<*>, targetName: string, parent: ?ObservableObject<*>) {
         super(defaultTarget, targetName, parent, true, defaultTarget);
     }
 
-    add(value) {
-        return this.$$notify(Object.getPrototypeOf(this).add.bind(this)(value));
+    add(value: any): any {
+        return this.$$notify(getProperty(Object.getPrototypeOf(this), 'add').bind(this)(value));
     }
 
-    clear() {
-        return this.$$notify(Object.getPrototypeOf(this).clear.bind(this)());
+    clear(): any {
+        return this.$$notify(getProperty(Object.getPrototypeOf(this), 'clear').bind(this)());
     }
 
-    delete(value) {
-        return this.$$notify(Object.getPrototypeOf(this).delete.bind(this)(value));
+    delete(value: any): any {
+        return this.$$notify(getProperty(Object.getPrototypeOf(this), 'delete').bind(this)(value));
     }
 
-    $$patchTo(target) {
+    $$patchTo(target: Set<*>): Set<*> {
         target = target || new Set();
         super.$$patchTo(target);
         ['add', 'clear', 'delete'].forEach((key) => {
-            definedUnEnumerableProperty(target, key, this[key]);
+            definedUnEnumerableProperty(target, key, getProperty(this, key));
         });
 
         return target;

@@ -1,98 +1,78 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/17
- **/
+/* @flow */
 
-import { isObservable, isAtom, isExtensible } from '../types/ObservableObject';
+import ObservableObject, { isObservable, isAtom, isExtensible } from '../types/ObservableObject';
 import ObservableFactory from '../types/ObservableFactory';
 import transformName from '../utils/transformName';
 import shallowClone from '../utils/shallowClone';
+import getProperty from '../utils/getProperty';
 import isObjectExtensible from '../utils/isObjectExtensible';
 import definedUnEnumerableProperty from '../utils/definedUnEnumerableProperty';
 
-class JointWarpper {
-    constructor(target) {
-        this.$$joint = true;
+class JointWrapper {
+    $$joint: boolean = true;
+    target: Object;
+    constructor(target: Object) {
         this.target = target;
     }
 }
 
-function isPrivateValue(propertyKey) {
+function isPrivateValue(propertyKey: string): boolean {
     return propertyKey === '$$value';
 }
 
-function isObject(obj) {
-    return obj != null && typeof obj == 'object'
+function isObject(obj: any): boolean {
+    return obj !== null && typeof obj === 'object';
 }
 
-function supportType(obj) {
-    if (isExtensible(obj) || !obj.constructor || !obj.constructor.name) { //Object
+function supportType(obj: any): boolean {
+    if (isExtensible(obj) || !obj.constructor || !obj.constructor.name) {
         return true;
     }
 
     return ['Object', 'Array', 'Map', 'Set'].includes(obj.constructor.name);
 }
 
-function needObservable(obj) {
+function needObservable(obj: any): boolean {
     return isObject(obj) && supportType(obj) && isObjectExtensible(obj) && !isAtom(obj);
 }
 
-function jointNewChild(target, options) {
-    if (!target || typeof target != 'object' || !target.$$parent || !target.$$targetName) {
-        return false;
-    }
-
-    let newTarget = shallowClone(target);
-    target.$$parent[target.$$targetName] = new JointWarpper(observable(newTarget, options, target.$$targetName, target.$$parent),);
-
-    jointNewChild(target.$$parent, options);
-
-    return true;
-}
-
-function observable(defaultTarget: Object, options: Object = {}, targetName: string = "", parentTarget: Object) {
+function observable(defaultTarget: any, options: Object = {}, targetName: string = '', parentTarget?: ?ObservableObject<*>): any {
     let target = ObservableFactory.create(defaultTarget, targetName, parentTarget);
-    if (target == null) {
+    if (target === null || target === undefined) {
         return defaultTarget;
     }
 
-    let observableTarget = isObservable(defaultTarget) ? defaultTarget : target.$$patchTo(defaultTarget);
+    let observableTarget: ObservableObject<*> = isObservable(defaultTarget) ? defaultTarget : target.$$patchTo(defaultTarget);
 
     const handler = (propertyKey) => {
-        let propertyValue = observableTarget[propertyKey];
+        let propertyValue = getProperty(observableTarget, propertyKey);
         if (!isPrivateValue(propertyKey) && needObservable(propertyValue)) {
-            observableTarget[propertyKey] = observable(propertyValue, options, propertyKey, observableTarget);
+            propertyValue = observable(propertyValue, options, propertyKey, observableTarget);
         }
 
         //fix In a observable object modified, failed to modify the object of parent
-        if (!isPrivateValue(propertyKey) && isObservable(propertyValue) && propertyValue.$$parent != observableTarget) {
-            definedUnEnumerableProperty(observableTarget[propertyKey], '$$parent', observableTarget);
+        if (!isPrivateValue(propertyKey) && isObservable(propertyValue) && propertyValue.$$parent !== observableTarget) {
+            definedUnEnumerableProperty(propertyValue, '$$parent', observableTarget);
         }
 
         let descriptor = {
-            _value: observableTarget[propertyKey],
+            _value: propertyValue,
             enumerable: !propertyKey.startsWith('$$'),
             get: function() {
                 if (options.watch) {
-                    options.watch(transformName(observableTarget.$$name, isAtom(observableTarget) || isPrivateValue(propertyKey) ? "" : propertyKey));
+                    options.watch(transformName(observableTarget.$$name, isAtom(observableTarget) || isPrivateValue(propertyKey) ? '' : propertyKey));
                 }
 
                 return descriptor._value;
             },
             set: function(value) {
-                let isJoint = false;
-                if (value instanceof JointWarpper) {
-                    isJoint = value.$$joint;
-                    value = value.target;
-                }
-
-                let oldValue = observableTarget[propertyKey];
-                if (!isPrivateValue(propertyKey) && oldValue === value) {
+                if (!isPrivateValue(propertyKey) && descriptor._value === value) {
                     return true;
                 }
 
                 if (!isAtom(observableTarget)) {
-                    if (isPrivateValue(propertyKey)) { //reobserver
+                    //re-observer
+                    if (isPrivateValue(propertyKey)) {
                         observableTarget = observable(observableTarget, options, observableTarget.$$name, observableTarget.$$parent);
                     } else if (!isAtom(value)) {
                         descriptor._value = observable(value, options, propertyKey, observableTarget);
@@ -101,16 +81,9 @@ function observable(defaultTarget: Object, options: Object = {}, targetName: str
                     }
                 }
 
-                jointNewChild(observableTarget, options);
-
-                //if the target parent not null, the changed event has fired in jointNewChild function;
-                if (isJoint) {
-                    return true;
-                }
-
                 if (options.changed) {
                     options.changed(transformName(observableTarget.$$name,
-                        isAtom(observableTarget) || isPrivateValue(propertyKey) ? "" : propertyKey));
+                        isAtom(observableTarget) || isPrivateValue(propertyKey) ? '' : propertyKey));
                 }
             }
         };

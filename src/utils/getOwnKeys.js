@@ -1,9 +1,6 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/3/2
- **/
+/* @flow */
 
-export default function getOwnKeys(obj) {
+export default function getOwnKeys(obj: Object): Array<string> {
     return Object.keys(obj).filter((key) => {
         return !key.startsWith || !key.startsWith('$$');
     });

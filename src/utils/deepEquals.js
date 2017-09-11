@@ -1,18 +1,16 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/3/2
- **/
+/* @flow */
+
 import shallowEquals from './shallowEquals';
 
-export default function deepEquals(first, second, maxDeepCount = 4, curDeepIndex = 0) {
-    if (typeof first != 'object' || typeof second != 'object') {
+export default function deepEquals(first: any, second: any, maxDeepCount: number = 4, curDeepIndex: number = 0): boolean {
+    if (typeof first !== 'object' || typeof second !== 'object') {
         return shallowEquals(first, second);
     }
 
     let firstKeys = Object.keys(first);
     let secondKeys = Object.keys(second);
 
-    if (firstKeys.length != secondKeys.length) {
+    if (firstKeys.length !== secondKeys.length) {
         return false;
     }
 

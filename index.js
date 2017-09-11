@@ -1,9 +1,8 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/2/16
- **/
+/* @flow */
 
+import React from 'react';
 import $Scope, {$rootScope} from './src/core/$Scope';
+import DoyView from './src/view/DoyView';
 import extend from './src/core/extend';
 import atom from './src/core/atom';
 import extensible from './src/core/extensible';
@@ -11,7 +10,8 @@ import why from './src/core/why';
 
 export default class Doy {
     static $rootScope: $Scope = $rootScope;
-    static extend(option: Object): ReactComponent {
+    static DoyView = DoyView;
+    static extend(option: ExtendOptions): React.Component<*, *, *> {
         return extend(option);
     }
 
@@ -23,7 +23,7 @@ export default class Doy {
         return extensible(obj);
     }
 
-    static why(enabled: Boolean, printFn: Function) {
+    static why(enabled: boolean, printFn: Function) {
         return why(enabled, printFn);
     }
 };

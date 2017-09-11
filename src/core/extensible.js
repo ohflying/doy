@@ -1,7 +1,4 @@
-/**
- * Author: Jeejen.Dong
- * Date  : 17/3/13
- **/
+/* @flow */
 import definedUnEnumerableProperty from '../utils/definedUnEnumerableProperty';
 
 export default function extensible(obj: Object): Object {
