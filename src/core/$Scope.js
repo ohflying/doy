@@ -21,6 +21,30 @@ class $Scope {
         this._setParentScope(parentScope);
     }
 
+    $injectorProperty(propertyKey: string, callback: () => any): boolean {
+        if (!this.$$wrapper) {
+            return false;
+        }
+
+        Object.defineProperty(this.$$wrapper, propertyKey, {
+            get: () => {
+                return callback();
+            }
+        });
+
+        return true;
+    }
+
+    $injectorMethod(methodName: string, callback: any): boolean {
+        if (!this.$$wrapper) {
+            return false;
+        }
+
+        Object.defineProperty(this.$$wrapper, methodName, callback);
+
+        return true;
+    }
+
     $apply() {
         if (!this._destroyed) {
             this.$fire($Scope.NEED_RENDER);

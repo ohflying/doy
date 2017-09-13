@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import $Scope, { $rootScope } from '../core/$Scope';
+import atom from '../core/atom';
 import shallowEquals from '../utils/shallowEquals';
 import unwrapModule from '../utils/unwrapModule';
 
@@ -18,19 +19,27 @@ class DoyView extends React.Component<*, *, *> {
     $scope: $Scope;
     constructor(props: Object, context: Object, options: Options = {name: ''}) {
         super(props, context);
-        this.$scope = (this.context.$curScope || $rootScope).$new({props: Object.assign({}, props), ...(options.data || {})}, options.name);
+        this.$scope = (this.context.$curScope || $rootScope).$new({props: Object.assign(atom({}), props), ...(options.data || {})}, options.name);
+        //$FlowIgnore
+        this.$scope.$$wrapper = this;
 
         this._bindEvent();
     }
 
+    componentWillMount() {
+        this.$scope.$fire('view.loaded', null, true);
+    }
+
     componentWillUnmount() {
+        this.$scope.$fire('view.unloaded', null, true);
+
         this.unmount = true;
         this._delayDestroy();
     }
 
     componentWillReceiveProps(nextProps: Object) {
         if (!shallowEquals(this.props, nextProps)) {
-            this.$scope.store.props = Object.assign({}, nextProps);
+            this.$scope.store.props = Object.assign(atom({}), nextProps);
         }
     }
 
