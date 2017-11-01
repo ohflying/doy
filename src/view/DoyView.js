@@ -16,6 +16,8 @@ class DoyView extends React.Component<*, *, *> {
     };
 
     unmount: boolean = false;
+    autoRenderEnabled: boolean = true;
+    needRender: boolean = false;
     $scope: $Scope;
     constructor(props: Object, context: Object, options: Options = {name: ''}) {
         super(props, context);
@@ -51,10 +53,26 @@ class DoyView extends React.Component<*, *, *> {
         return { $curScope: this.$scope };
     }
 
+    enableAutoRender(enable: boolean): void {
+        if (enable === this.autoRenderEnabled) {
+            return;
+        }
+
+        this.autoRenderEnabled = enable;
+        if (this.autoRenderEnabled && this.needRender) {
+            this.$scope.$apply();
+            this.needRender = false;
+        }
+    }
+
     _bindEvent() {
         this.$scope.$on($Scope.NEED_RENDER, () => {
             if (!this.unmount) {
-                this.forceUpdate();
+                if (this.autoRenderEnabled) {
+                    return this.forceUpdate();
+                }
+
+                this.needRender = true;
             }
         });
     }
